@@ -59,11 +59,10 @@ public:
     void update()
     {
         for(auto& c:components)c->update();
-        for(auto& c:components)c->draw();
     }
     void draw()
     {
-
+        for(auto& c:components)c->draw();
     }
     bool isActive() const {return active; }
     void destroy() {active=false;}
@@ -122,6 +121,16 @@ class PositionComponent:public component
 {
     int xpos,ypos;
 public:
+    PositionComponent()
+{
+    xpos=0;
+    ypos=0;
+}
+    PositionComponent(int x,int y)
+{
+    xpos=x;
+    ypos=y;
+}
     int x(){return xpos;}
     int y(){return ypos;}
     void init()override
@@ -140,6 +149,34 @@ public:
         ypos=y;
     }
 };
+class SpriteComponent:public Component
+{
+    PositionComponent *position;
+    SDL_texture *texture;
+    SDL_Rect srcRect,destRect;
+public:
+    SpriteComponent()=default;
+    SpriteComponent(const char* path)
+    {
+        texture=TextureManager::LoadTexture(path);
+    }
+    void init() override
+    {
+        position=&entity->getComponent<PositionComponent>();
+        srcRect.x=srcRect.y=0;
+        srcRect.w=srcRect.h=32;
+        destRect.w=destRect.h=64;
+    }
+    void update() override
+    {
+        destRect.x=position->x();
+        destRect.y=position->y();
+    }
+    void draw() override
+    {
+    
+    }
+}
 Manager manager;
 auto& newPlayer(manager.addEntity());
 class Game
@@ -324,10 +361,12 @@ void Game::init(const char *title,int xpos,int ypos,int width,int height,bool fu
     //SDL_Surface *tmpSurface=IMG_Load("assets/player.png");
     //playerTex=SDL_CreateTextureFromSurface(renderer,tmpSurface);
     //SDL_FreeSurface(tmpSurface);
-    player=new GameObject("assets/player.png",50,50);
-    enemy=new GameObject("assets/enemy.png",0,0);
+    //player=new GameObject("assets/player.png",50,50);
+    //enemy=new GameObject("assets/enemy.png",0,0);
     map=new Map();
-    newPlayer.addcomponent<>
+    player.addcomponent<PositionComponent>(100,500);
+    player.addcomponent<SpriteComponent>("assets/player.png");
+    
 }
 void Game::handleEvents()
 {
@@ -354,7 +393,6 @@ void Game::render()
     //here we add stuff to render
     //SDL_RenderCopy(renderer,playerTex,NULL,&destR);
     map->DrawMap();
-    player->Render();
     enemy->Render();
     SDL_RenderPresent(renderer);
 }
