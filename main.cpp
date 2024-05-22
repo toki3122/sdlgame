@@ -23,7 +23,7 @@ template<typename T>inline ComponentID getComponentTypeID() noexcept
 constexpr std::size_t maxComponents=32;
 using ComponentBitSet=std::bitset<maxComponents>;
 using ComponentArray=std::array<component*,maxComponents>;
-class ComponentArray
+class Component
 {
 public:
     Entity *entity;
