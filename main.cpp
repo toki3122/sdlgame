@@ -24,7 +24,7 @@ constexpr std::size_t maxComponents=32;
 using ComponentBitSet=std::bitset<maxComponents>;
 using ComponentArray=std::array<component*,maxComponents>;
 class Component
-{
+{   
 public:
     Entity *entity;
     virtual void init()
@@ -78,7 +78,7 @@ public:
         unique_ptr<Component>uPtr{c};
         components.emplace_back(move(uptr));
         componentsArray[getComponentTypeID<T>()]=c;
-        componentsArray[getComponentTypeID<T>()]=true;
+        componentBitSet[getComponentTypeID<T>()]=true;
         c->init();
         return *c;
     }
@@ -158,6 +158,10 @@ public:
     SpriteComponent()=default;
     SpriteComponent(const char* path)
     {
+        setTex(path);
+    }
+    void setTex(const char* path)
+    {
         texture=TextureManager::LoadTexture(path);
     }
     void init() override
@@ -174,11 +178,11 @@ public:
     }
     void draw() override
     {
-    
+        TextureManager::Draw(texture,srcRect,destRect)
     }
 }
 Manager manager;
-auto& newPlayer(manager.addEntity());
+auto& Player(manager.addEntity());
 class Game
 {
     bool isRunning=false;
@@ -364,8 +368,9 @@ void Game::init(const char *title,int xpos,int ypos,int width,int height,bool fu
     //player=new GameObject("assets/player.png",50,50);
     //enemy=new GameObject("assets/enemy.png",0,0);
     map=new Map();
-    player.addcomponent<PositionComponent>(100,500);
-    player.addcomponent<SpriteComponent>("assets/player.png");
+    newplayer.addComponent<PositionComponent>(100,500);
+    //newpalyer.getComponent<PositionComponent>().SetPos(100,500);
+    newplayer.addComponent<SpriteComponent>("assets/player.png");
     
 }
 void Game::handleEvents()
@@ -383,9 +388,13 @@ void Game::handleEvents()
 }
 void Game::update()
 {
-    player->Update();
-    enemy->Update();
+    manager.refresh();
+    manager.update();
     //map->LoadMap();
+    if(player.getComponent<>().x()>100)
+    {
+        player.getComponent<SpriteComponent>().setTex("assets/enemy.png");
+    }
 }
 void Game::render()
 {
@@ -393,7 +402,7 @@ void Game::render()
     //here we add stuff to render
     //SDL_RenderCopy(renderer,playerTex,NULL,&destR);
     map->DrawMap();
-    enemy->Render();
+    manager.draw();
     SDL_RenderPresent(renderer);
 }
 void Game::clean()
